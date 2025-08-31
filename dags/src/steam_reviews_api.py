@@ -42,8 +42,6 @@ class SteamReviewsApi(IReviewsAPI):
                 break
             cursor = cursor.strip('"')
             parametros['cursor'] = urllib.parse.quote(cursor)
-
-            print(parametros['cursor'])
             print('=' * 200)
 
 

@@ -2,7 +2,7 @@ from typing import Dict, Generator
 from dags.cconfigs.cconfig import Cconfig
 import requests
 import urllib.parse
-from dags.src.ireviewsapi import IReviewsAPI
+from dags.src.api_steam.ireviewsapi import IReviewsAPI
 
 
 class SteamReviewsApi(IReviewsAPI):
@@ -47,6 +47,6 @@ class SteamReviewsApi(IReviewsAPI):
 if __name__ == '__main__':
     sra = SteamReviewsApi()
 
-    dados = sra.obter_reviews_steam(codigo_jogo_steam=244850, intervalo_dias=3)
+    dados = sra.obter_reviews_steam(codigo_jogo_steam=244850, intervalo_dias=10)
     for dado in dados:
         print(dado['review'])

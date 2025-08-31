@@ -72,6 +72,7 @@ x-airflow-common:
     _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
     # The following line can be used to set a custom config file, stored in the local config folder
     AIRFLOW_CONFIG: '/opt/airflow/config/airflow.cfg'
+    TZ: America/Sao_Paulo
   volumes:
     - ${AIRFLOW_PROJ_DIR:-.}/dags:/opt/airflow/dags
     - ${AIRFLOW_PROJ_DIR:-.}/logs:/opt/airflow/logs
@@ -112,6 +113,8 @@ services:
     # Redis is limited to 7.2-bookworm due to licencing change
     # https://redis.io/blog/redis-adopts-dual-source-available-licensing/
     image: redis:7.2-bookworm
+    environment:
+      TZ: America/Sao_Paulo
     container_name: redis
     expose:
       - 6379
@@ -368,6 +371,8 @@ services:
       retries: 5
       start_period: 30s
     restart: always
+    environment:
+      TZ: America/Sao_Paulo
     networks:
       airflow-net:
         ipv4_address: 172.40.0.20
@@ -387,6 +392,7 @@ services:
     environment:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin
+      TZ: America/Sao_Paulo
     command: server /data --console-address ":9001"
     volumes:
       - ./minio_data:/data
@@ -394,6 +400,30 @@ services:
     networks:
       airflow-net:
         ipv4_address: 172.40.0.22
+
+  mc:
+    image: minio/mc:latest
+    container_name: mc
+    environment:
+      TZ: America/Sao_Paulo
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+        sleep 10 &&
+        mc alias set localminio http://minio:9000 minioadmin minioadmin &&
+        mc admin user add localminio meuusuario minhasenha123 &&
+        mc admin policy attach localminio readwrite --user meuusuario &&
+        mc mb -p localminio/meu-bucket || true &&
+        mc mb -p localminio/meu-bucket/datalake/bronze || true &&
+        mc mb -p localminio/meu-bucket/datalake/prata || true &&
+        mc mb -p localminio/meu-bucket/datalake/ouro || true &&
+        tail -f /dev/null
+      "
+    networks:
+      airflow-net:
+        ipv4_address: 172.40.0.23
+
 
 volumes:
   postgres-db-volume:

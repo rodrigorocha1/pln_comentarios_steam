@@ -1,63 +1,47 @@
+from datetime import datetime
 from airflow import DAG
-from airflow.operators.bash import BashOperator
-from datetime import datetime, timedelta
+from airflow.operators.empty import EmptyOperator
+from airflow.providers.amazon.aws.hooks.s3 import S3Hook
+from airflow.decorators import task
+from airflow.providers.http.operators.http import HttpOperator
+from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 
-# Default args
-default_args = {
-    'owner': 'airflow',
-    'depends_on_past': False,
-    'email': ['airflow@example.com'],
-    'email_on_failure': False,
-    'email_on_retry': False,
-    'retries': 1,
-    'retry_delay': timedelta(minutes=5),
-}
 
-# DAG
-dag = DAG(
-    'example_bash_jinja_templates',
-    default_args=default_args,
-    description='Exemplo de BashOperator com várias variáveis de template',
-    start_date=datetime(2025, 8, 31),
-    catchup=False,
-    tags={'a'} ,
-    
-)
+# Task Python usando o decorator do Airflow 3.x
+@task
+def listar_arquivos():
+    hook = S3Hook(aws_conn_id="teste")
+    arquivos = hook.list_keys(bucket_name="meu-bucket")
+    print(f"Arquivos encontrados: {arquivos}")
+    return arquivos
 
-# Task 1: ds
-t_ds = BashOperator(
-    task_id="print_ds",
-    bash_command="echo ds: {{ ds }}",
-    dag=dag,
-)
 
-# Task 2: ds_nodash
-t_ds_nodash = BashOperator(
-    task_id="print_ds_nodash",
-    bash_command="echo ds_nodash: {{ ds_nodash }}",
-    dag=dag,
-)
+with DAG(
+        dag_id="exemplo_empty_operator",
+        start_date=datetime(2025, 8, 31),
 
-# Task 3: ts
-t_ts = BashOperator(
-    task_id="print_ts",
-    bash_command="echo ts: {{ ts }}",
-    dag=dag,
-)
+        catchup=False,
+        tags={"exemplo", "s3", "minio"},
+) as dag:
+    inicio_dag = EmptyOperator(task_id="inicio_dag")
 
-# Task 4: ts_nodash
-t_ts_nodash = BashOperator(
-    task_id="print_ts_nodash",
-    bash_command="echo ts_nodash: {{ ts_nodash }}",
-    dag=dag,
-)
+    checar_url_minio = HttpOperator(
+        task_id='minio_http',
+        method='GET',
+        http_conn_id='minio_http',  # CORRETO
+        endpoint='minio/health/ready',
+        response_check=lambda response: response.status_code == 200,
+        log_response=True,
 
-# Task 5: ts_nodash_with_tz
-t_ts_nodash_tz = BashOperator(
-    task_id="print_ts_nodash_with_tz",
-    bash_command="echo ts_nodash_with_tz: {{ ts_nodash_with_tz }}",
-    dag=dag,
-)
+    )
 
-# Dependências (executa em sequência)
-t_ds >> t_ds_nodash >> t_ts >> t_ts_nodash >> t_ts_nodash_tz
+
+
+
+    falha_dag = EmptyOperator(task_id="falha_dag", trigger_rule="one_failed")
+    fim_dag = EmptyOperator(task_id="fim_dag", trigger_rule="all_done")
+
+
+    # Definindo dependências
+    inicio_dag >> checar_url_minio >> fim_dag
+    checar_url_minio >> falha_dag >> fim_dag

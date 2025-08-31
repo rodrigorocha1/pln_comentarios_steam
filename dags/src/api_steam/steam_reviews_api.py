@@ -1,5 +1,5 @@
 from typing import Dict, Generator
-from dags.cconfigs.cconfig import Cconfig
+from dags.src.cconfigs.cconfig import Cconfig
 import requests
 import urllib.parse
 from dags.src.api_steam.ireviewsapi import IReviewsAPI

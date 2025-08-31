@@ -4,7 +4,7 @@ from airflow.operators.empty import EmptyOperator
 from airflow.providers.amazon.aws.hooks.s3 import S3Hook
 from airflow.decorators import task
 from airflow.providers.http.operators.http import HttpOperator
-from airflow.operators.trigger_dagrun import TriggerDagRunOperator
+from src.infra_datalake.gerenciador_bucket import GerenciadorBucket
 
 
 # Task Python usando o decorator do Airflow 3.x
@@ -36,6 +36,22 @@ with DAG(
     )
 
 
+    @task
+    def guardar_dados():
+        # Inicializa o gerenciador da camada 'bronze'
+        gb = GerenciadorBucket(camada='bronze')
+        # Exemplo de dados
+        dados = {'a': 1, 'b': 2}
+        # Caminho dentro do bucket
+        caminho = 'datalake/bronze/exemplo.json'
+        # Salva no S3
+        gb.guardar_arquivo(dado=dados, caminho_arquivo=caminho)
+        return f"Arquivo salvo em {caminho}"
+
+
+    salvar = guardar_dados()
+
+
 
 
     falha_dag = EmptyOperator(task_id="falha_dag", trigger_rule="one_failed")
@@ -43,5 +59,5 @@ with DAG(
 
 
     # Definindo dependências
-    inicio_dag >> checar_url_minio >> fim_dag
+    inicio_dag >> checar_url_minio >> salvar >> fim_dag
     checar_url_minio >> falha_dag >> fim_dag

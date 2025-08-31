@@ -2,8 +2,8 @@ import json
 from typing import Dict, Optional
 from airflow.providers.amazon.aws.hooks.s3 import S3Hook
 
-from dags.src.infra_datalake.igerenciador_arquivo import IGerenciadorArquivo
-from dags.cconfigs.cconfig import Cconfig
+from .igerenciador_arquivo import IGerenciadorArquivo
+from ..cconfigs.cconfig import Cconfig
 
 
 class GerenciadorBucket(IGerenciadorArquivo):
@@ -28,9 +28,14 @@ class GerenciadorBucket(IGerenciadorArquivo):
         conteudo_existente = self.abrir_arquivo(caminho_arquivo=caminho_arquivo)
         if conteudo_existente:
             novo_json = conteudo_existente + novo_json + "\n"
-        self.__s3_hook.load_file(
-            string_data=novo_json,
-            bucket_name=self.__NOME_BUCKET,
-            key=caminho_arquivo,
-
+        self.__s3_hook.get_conn().put_object(
+            Bucket=self.__NOME_BUCKET,
+            Key=caminho_arquivo,
+            Body=novo_json.encode("utf-8")
         )
+
+
+if __name__ == '__main__':
+    gb = GerenciadorBucket(camada='bronze')
+    dados = {'a': 1, 'b': 2}
+    gb.guardar_arquivo(dado=dados, caminho_arquivo='meu-bucket/datalake/bronze')

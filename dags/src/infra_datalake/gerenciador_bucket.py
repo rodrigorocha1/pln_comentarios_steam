@@ -1,15 +1,17 @@
 import json
 from typing import Dict, Optional
 from airflow.providers.amazon.aws.hooks.s3 import S3Hook
+
 from dags.src.infra_datalake.igerenciador_arquivo import IGerenciadorArquivo
+from dags.cconfigs.cconfig import Cconfig
 
 
 class GerenciadorBucket(IGerenciadorArquivo):
 
     def __init__(self, camada: str):
         self.__camada = camada
-        self.__s3_hook = S3Hook(aws_conn_id="teste")
-        self.__NOME_BUCKET = 'Teste'
+        self.__s3_hook = S3Hook(aws_conn_id=Cconfig.AWS_CON_ID)
+        self.__NOME_BUCKET = Cconfig.NOME_BUCKET
 
     def abrir_arquivo(self, caminho_arquivo: str, ) -> Optional[str]:
         try:

@@ -8,8 +8,8 @@ from ..cconfigs.cconfig import Cconfig
 
 class GerenciadorBucket(IGerenciadorArquivo):
 
-    def __init__(self, camada: str):
-        self.__camada = camada
+    def __init__(self):
+
         self.__s3_hook = S3Hook(aws_conn_id=Cconfig.AWS_CON_ID)
         self.__NOME_BUCKET = Cconfig.NOME_BUCKET
 

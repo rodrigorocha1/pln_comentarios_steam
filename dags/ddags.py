@@ -4,6 +4,7 @@ from airflow.operators.empty import EmptyOperator
 from airflow.providers.amazon.aws.hooks.s3 import S3Hook
 from airflow.decorators import task
 from airflow.providers.http.operators.http import HttpOperator
+
 from src.infra_datalake.gerenciador_bucket import GerenciadorBucket
 
 

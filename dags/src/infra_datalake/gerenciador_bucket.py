@@ -24,10 +24,10 @@ class GerenciadorBucket(IGerenciadorArquivo):
         return conteudo_existente
 
     def guardar_arquivo(self, dado: Dict, caminho_arquivo: str):
-        novo_json = json.dumps(dado, indent=4)
+        novo_json = json.dumps(dado)
         conteudo_existente = self.abrir_arquivo(caminho_arquivo=caminho_arquivo)
         if conteudo_existente:
-            novo_json = conteudo_existente + novo_json + "\n"
+            novo_json = conteudo_existente.rstrip("\n") + "\n" + novo_json
         self.__s3_hook.get_conn().put_object(
             Bucket=self.__NOME_BUCKET,
             Key=caminho_arquivo,

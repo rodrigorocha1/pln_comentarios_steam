@@ -43,7 +43,7 @@ with DAG(
         # Exemplo de dados
         dados = {'a': 1, 'b': 2}
         # Caminho dentro do bucket
-        caminho = 'datalake/bronze/exemplo.json'
+        caminho = 'datalake/bronze/exemplo.jsonl'
         # Salva no S3
         gb.guardar_arquivo(dado=dados, caminho_arquivo=caminho)
         return f"Arquivo salvo em {caminho}"

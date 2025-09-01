@@ -72,7 +72,6 @@ x-airflow-common:
     _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
     # The following line can be used to set a custom config file, stored in the local config folder
     AIRFLOW_CONFIG: '/opt/airflow/config/airflow.cfg'
-    TZ: America/Sao_Paulo
   volumes:
     - ${AIRFLOW_PROJ_DIR:-.}/dags:/opt/airflow/dags
     - ${AIRFLOW_PROJ_DIR:-.}/logs:/opt/airflow/logs
@@ -113,8 +112,6 @@ services:
     # Redis is limited to 7.2-bookworm due to licencing change
     # https://redis.io/blog/redis-adopts-dual-source-available-licensing/
     image: redis:7.2-bookworm
-    environment:
-      TZ: America/Sao_Paulo
     container_name: redis
     expose:
       - 6379
@@ -129,6 +126,7 @@ services:
       airflow-net:
         ipv4_address: 172.40.0.12
 
+
   airflow-apiserver:
     <<: *airflow-common
     container_name: airflow-apiserver
@@ -140,7 +138,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 360s
+      start_period: 30s
     restart: always
     depends_on:
       <<: *airflow-common-depends-on
@@ -371,8 +369,6 @@ services:
       retries: 5
       start_period: 30s
     restart: always
-    environment:
-      TZ: America/Sao_Paulo
     networks:
       airflow-net:
         ipv4_address: 172.40.0.20
@@ -380,7 +376,6 @@ services:
       <<: *airflow-common-depends-on
       airflow-init:
         condition: service_completed_successfully
-
 
 
   minio:
@@ -399,7 +394,7 @@ services:
     restart: unless-stopped
     networks:
       airflow-net:
-        ipv4_address: 172.40.0.22
+        ipv4_address: 172.40.0.21
 
   mc:
     image: minio/mc:latest
@@ -422,8 +417,7 @@ services:
       "
     networks:
       airflow-net:
-        ipv4_address: 172.40.0.23
-
+        ipv4_address: 172.40.0.22
 
 volumes:
   postgres-db-volume:

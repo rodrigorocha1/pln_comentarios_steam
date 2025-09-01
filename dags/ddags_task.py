@@ -14,7 +14,7 @@ def executar_processo_etl_bronze(id_jogo: int):
     dados = sra.obter_reviews_steam(codigo_jogo_steam=id_jogo, intervalo_dias=3)
     gb = GerenciadorBucket()
     data = datetime.now().date().strftime('%Y_%m_%d')
-    caminho = f'datalake/bronze/data_{data}/jogo_{id_jogo}'
+    caminho = f'datalake/bronze/data_{data}/jogo_{id_jogo}/reviews.json'
     print(caminho)
     for dado in dados:
         print(dado)

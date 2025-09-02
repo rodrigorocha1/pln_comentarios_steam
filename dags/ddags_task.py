@@ -7,6 +7,7 @@ from airflow.utils.task_group import TaskGroup
 from datetime import datetime
 from src.api_steam.steam_reviews_api import SteamReviewsApi
 from src.infra_datalake.gerenciador_bucket import GerenciadorBucket
+from src.processo_etl.processo_etl import ProcessoETL
 
 
 def executar_processo_etl_bronze(id_jogo: int):
@@ -16,6 +17,7 @@ def executar_processo_etl_bronze(id_jogo: int):
     data = datetime.now().date().strftime('%Y_%m_%d')
     caminho = f'datalake/bronze/data_{data}/jogo_{id_jogo}/reviews.json'
     print(caminho)
+    e = ProcessoETL(texto='a')
     for dado in dados:
         print(dado)
         gb.guardar_arquivo(dado=dado, caminho_arquivo=caminho)

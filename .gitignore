@@ -7,3 +7,4 @@ postgres-db-volume/
 venv
 *.log
 logs
+*.duckdb

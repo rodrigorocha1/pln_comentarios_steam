@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Dict, Optional
+from typing import Dict, Optional, Union, Set
 
 
 class IGerenciadorArquivo(ABC):
@@ -9,5 +9,5 @@ class IGerenciadorArquivo(ABC):
         pass
 
     @abstractmethod
-    def guardar_arquivo(self, dado: Dict, caminho_arquivo: str):
+    def guardar_arquivo(self, dado: Union[Dict, Set[str]], caminho_arquivo: str):
         pass

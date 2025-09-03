@@ -60,6 +60,7 @@ x-airflow-common:
     AIRFLOW__CELERY__BROKER_URL: redis://:@redis:6379/0
     AIRFLOW__CORE__FERNET_KEY: ''
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
+    TZ: "America/Sao_Paulo"
     AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
     AIRFLOW__CORE__EXECUTION_API_SERVER_URL: 'http://airflow-apiserver:8080/execution/'
     # yamllint disable rule:line-length
@@ -96,6 +97,7 @@ services:
       POSTGRES_USER: airflow
       POSTGRES_PASSWORD: airflow
       POSTGRES_DB: airflow
+      TZ: "America/Sao_Paulo"
     volumes:
       - ./postgres-db-volume:/var/lib/postgresql/data
     healthcheck:
@@ -113,6 +115,8 @@ services:
     # https://redis.io/blog/redis-adopts-dual-source-available-licensing/
     image: redis:7.2-bookworm
     container_name: redis
+    environment:
+      TZ: "America/Sao_Paulo"
     expose:
       - 6379
     healthcheck:

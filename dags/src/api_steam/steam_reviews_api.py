@@ -5,6 +5,7 @@ import urllib.parse
 from .ireviewsapi import IReviewsAPI
 
 
+
 class SteamReviewsApi(IReviewsAPI):
 
     def __init__(self):

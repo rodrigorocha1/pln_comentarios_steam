@@ -3,7 +3,6 @@ from langdetect import detect, DetectorFactory
 import spacy
 import unicodedata
 import re
-from pycparser.ply.ctokens import t_XOR
 
 AWS_ACCESS_KEY_ID = "meuusuario"
 AWS_SECRET_ACCESS_KEY = "minhasenha123"
@@ -21,6 +20,9 @@ con.execute("SET s3_url_style='path';")  # estilo path obrigatório para MinIO
 df = con.execute(f"""
     SELECT * FROM read_json_auto('s3://{BUCKET_NAME}/{ARQUIVO_PATH}')
 """).df()
+
+# Configura seed do langdetect (para resultados consistentes)
+DetectorFactory.seed = 0
 
 
 def remover_acentos(texto):
@@ -60,7 +62,7 @@ def remover_acentos(texto):
         c for c in unicodedata.normalize('NFKD', texto)
         if not unicodedata.combining(c)
     )
-
+nlp = spacy.load("pt_core_news_sm")
 def fazer_preprocessamento(texto):
     texto = re.sub(r'\s+', ' ', texto)
     texto = emoji_pattern.sub(r'', texto)  # remove emojis
@@ -83,39 +85,3 @@ tokens = fazer_preprocessamento(texto_completo)
 print(set(tokens))
 
 
-import pickle
-
-# Supondo que tokens seja o set que você gerou
-# tokens = fazer_preprocessamento(texto_completo)
-
-# Método 1: usando pickle para estimar tamanho em memória
-tamanho_bytes = len(pickle.dumps(tokens))
-tamanho_mb = tamanho_bytes / (1024 * 1024)
-
-print(f"Tamanho estimado do set de tokens: {tamanho_mb:.4f} MB")
-
-import sys
-
-
-def tamanho_preciso(obj):
-    """Calcula o tamanho aproximado de um objeto e seus elementos recursivamente"""
-    tamanho_total = sys.getsizeof(obj)
-
-    if isinstance(obj, dict):
-        for k, v in obj.items():
-            tamanho_total += tamanho_preciso(k)
-            tamanho_total += tamanho_preciso(v)
-    elif isinstance(obj, (list, tuple, set)):
-        for item in obj:
-            tamanho_total += tamanho_preciso(item)
-    elif isinstance(obj, str):
-        tamanho_total += sys.getsizeof(obj)
-
-    return tamanho_total
-
-
-# Supondo que tokens seja o set
-tamanho_bytes = tamanho_preciso(tokens)
-tamanho_mb = tamanho_bytes / (1024 * 1024)
-
-print(f"Tamanho real aproximado do set de tokens: {tamanho_mb:.4f} MB")

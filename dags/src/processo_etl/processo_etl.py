@@ -1,6 +1,9 @@
 from src.api_steam.steam_reviews_api import SteamReviewsApi
 from ..infra_datalake.gerenciador_bucket import GerenciadorBucket
+from ..infra_datalake.conexao_banco import ConexaoBanco
 import spacy
+
+
 
 
 def executar_processo_etl_bronze(id_jogo: int, data: str):
@@ -17,4 +20,6 @@ def executar_processo_etl_prata(id_jogo: int, data: str):
     gb = GerenciadorBucket()
     caminho = f'datalake/bronze/data_{data}/jogo_{id_jogo}/reviews.json'
     dados = gb.abrir_arquivo(caminho_arquivo=caminho)
-    print(dados)
+    conexao_banco = ConexaoBanco(caminho=caminho)
+    dataframe = conexao_banco.consultar_dados()
+    print(dataframe)

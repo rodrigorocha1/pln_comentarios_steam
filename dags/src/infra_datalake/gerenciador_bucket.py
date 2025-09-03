@@ -3,6 +3,7 @@ from typing import Dict, Optional, Union, Set
 from airflow.providers.amazon.aws.hooks.s3 import S3Hook
 import pyarrow as pa
 from typing import List
+import pandas as pd
 import io
 import pyarrow.parquet as pq
 from .igerenciador_arquivo import IGerenciadorArquivo
@@ -23,40 +24,28 @@ class GerenciadorBucket(IGerenciadorArquivo):
             if caminho_arquivo.endswith(".parquet"):
                 s3_key = self.__s3_hook.get_key(key=caminho_arquivo, bucket_name=self.__NOME_BUCKET)
                 conteudo = s3_key.get()['Body'].read()
-            else:
-                conteudo = self.__s3_hook.read_key(key=caminho_arquivo, bucket_name=self.__NOME_BUCKET)
-        except Exception as e:
-            self.logger.warning(f"Não foi possível ler {caminho_arquivo}: {e}")
-            return None
-
-        if not conteudo:
-            return None
-
-        if caminho_arquivo.endswith(".parquet"):
-            try:
                 buffer = io.BytesIO(conteudo)
                 if buffer.getbuffer().nbytes == 0:
                     return None
                 tabela = pq.read_table(buffer)
                 self.logger.info(f"Tabela {caminho_arquivo} lida com sucesso")
                 return tabela
-            except Exception as e:
-                self.logger.error(f"Erro ao ler parquet {caminho_arquivo}: {e}")
-                return None
+            else:
+                conteudo = self.__s3_hook.read_key(key=caminho_arquivo, bucket_name=self.__NOME_BUCKET)
+                dados = json.loads(conteudo)
+                return dados
+        except Exception as e:
+            self.logger.warning(f"Não foi possível ler {caminho_arquivo}: {e}")
+            return None
 
-        try:
-            return json.loads(conteudo)
-        except Exception:
-            return conteudo
+
 
     def guardar_arquivo(self, dado: Union[Dict, Set[str]], caminho_arquivo: str):
         conteudo_existente = self.abrir_arquivo(caminho_arquivo)
         print(f'conteudo_existente: {conteudo_existente}')
-
         if isinstance(dado, dict):
             lista_existente = []
             if conteudo_existente:
-                # Se arquivo JSON existente for lista de objetos
                 if isinstance(conteudo_existente, list):
                     lista_existente = conteudo_existente
                 elif isinstance(conteudo_existente, dict):

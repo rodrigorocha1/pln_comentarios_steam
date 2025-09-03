@@ -32,15 +32,15 @@ with DAG(
 
     dag_erro = EmptyOperator(task_id='dag_erro', trigger_rule='one_failed')
 
-    # with TaskGroup('task_steam_reviews_bronze', dag=dag) as tg_steam_bronze:
-    #     lista_tasks = []
-    #     for i in lista_ids:
-    #         salvar_camada_bronze = PythonOperator(
-    #             task_id=f"executar_processo_etl_bronze_{i}",
-    #             python_callable=ProcessoEtl(caminho=None).executar_processo_etl_bronze,
-    #             op_kwargs={"id_jogo": i, "data": data}
-    #         )
-    #         lista_tasks.append(lista_ids)
+    with TaskGroup('task_steam_reviews_bronze', dag=dag) as tg_steam_bronze:
+        lista_tasks = []
+        for i in lista_ids:
+            salvar_camada_bronze = PythonOperator(
+                task_id=f"executar_processo_etl_bronze_{i}",
+                python_callable=ProcessoEtl(caminho=None).executar_processo_etl_bronze,
+                op_kwargs={"id_jogo": i, "data": data}
+            )
+            lista_tasks.append(lista_ids)
 
     with TaskGroup('task_steam_reviews_prata', dag=dag) as tg_steam_prata:
         lista_tasks = []
@@ -55,7 +55,8 @@ with DAG(
 
     fim_dag = EmptyOperator(task_id="fim_dag", trigger_rule='all_done')
 
-    # inicio_dag >> checar_url_minio >> tg_steam_bronze >> tg_steam_prata >> fim_dag
-    inicio_dag >> checar_url_minio >> tg_steam_prata >> fim_dag
+    inicio_dag >> checar_url_minio >> tg_steam_bronze >> tg_steam_prata >> fim_dag
+    # inicio_dag >> checar_url_minio >> tg_steam_prata >> fim_dag
+
 
     checar_url_minio >> dag_erro >> fim_dag

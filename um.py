@@ -22,4 +22,4 @@ df = con.execute(f"""
 """).df()
 
 # Configura seed do langdetect (para resultados consistentes)
-print(df)
+print(df.value_counts())

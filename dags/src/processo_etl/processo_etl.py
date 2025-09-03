@@ -6,12 +6,16 @@ from langdetect import detect, DetectorFactory
 import unicodedata
 import spacy
 import re
+from pandas import json_normalize
 
 
 class ProcessoEtl:
     def __init__(self, caminho: Optional[str]):
         self.__steam_api = SteamReviewsApi()
-        self.__gerenciador_bk = GerenciadorBucket()
+        self.__gerenciador_bk = {
+            'bronze': GerenciadorBucket(),
+            'prata': GerenciadorBucket()
+        }
         self.__conexao_banco = ConexaoBanco(caminho=caminho)
         self.__nlp = spacy.load("pt_core_news_sm")
         DetectorFactory.seed = 0
@@ -50,19 +54,26 @@ class ProcessoEtl:
 
     def executar_processo_etl_bronze(self, id_jogo: int, data: str):
         dados = self.__steam_api.obter_reviews_steam(codigo_jogo_steam=id_jogo, intervalo_dias=3)
-        caminho = f'datalake/bronze/data_{data}/jogo_{id_jogo}/reviews.json'
+        caminho = f'datalake/bronze/data_{data}/jogo_{id_jogo}/reviews.jsonl'
         for dado in dados:
-            self.__gerenciador_bk.guardar_arquivo(dado=dado, caminho_arquivo=caminho)
+            self.__gerenciador_bk['bronze'].guardar_arquivo(dado=dado, caminho_arquivo=caminho)
 
     def executar_processo_etl_prata(self, id_jogo: int, data: str):
-        caminho_bronze = f'datalake/bronze/data_{data}/jogo_{id_jogo}/reviews.json'
+        caminho_bronze = f'datalake/bronze/data_{data}/jogo_{id_jogo}/reviews.jsonl'
         caminho_prata = f'datalake/prata/data_{data}/jogo_{id_jogo}/reviews.parquet'
-
-        self.__conexao_banco.arquivo_path = caminho_bronze
-        dataframe = self.__conexao_banco.criar_dados(funcao='read_json_auto')
+        dados = self.__gerenciador_bk['bronze'].abrir_arquivo(caminho_arquivo=caminho_bronze)
+        if dados is None:
+            dados_normalizados = []
+        elif isinstance(dados, dict):
+            dados_normalizados = [dados]
+        elif isinstance(dados, list):
+            dados_normalizados = [d for d in dados if isinstance(d, dict)]
+        else:
+            raise TypeError(f"Tipo inesperado em 'dados': {type(dados)}")
+        dataframe = json_normalize(dados_normalizados, sep='_')
         dataframe['portugues'] = dataframe['review'].apply(self.is_portuguese)
         dataframe = dataframe[dataframe['portugues']]
         tupla_de_linhas = dataframe['review'].tolist()
         texto_completo = ' '.join(tupla_de_linhas)
         texto_tratado = self.fazer_preprocessamento(texto=texto_completo)
-        self.__gerenciador_bk.guardar_arquivo(dado=texto_tratado, caminho_arquivo=caminho_prata)
+        self.__gerenciador_bk['prata'].guardar_arquivo(dado=texto_tratado, caminho_arquivo=caminho_prata)

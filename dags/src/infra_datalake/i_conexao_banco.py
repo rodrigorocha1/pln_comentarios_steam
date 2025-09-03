@@ -9,5 +9,5 @@ class IConexaoBanco(ABC):
         pass
 
     @abstractmethod
-    def criar_dados(self) -> pd.DataFrame:
+    def criar_dados(self, funcao: str) -> pd.DataFrame:
         pass

@@ -1,9 +1,6 @@
 import duckdb
 import pandas as pd
-from langdetect import detect, DetectorFactory
-import unicodedata
-import re
-from dags.src.infra_datalake.i_conexao_banco import IConexaoBanco
+from ..infra_datalake.i_conexao_banco import IConexaoBanco
 
 
 class ConexaoBanco(IConexaoBanco):

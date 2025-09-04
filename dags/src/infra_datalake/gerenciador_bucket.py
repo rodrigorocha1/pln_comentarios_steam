@@ -38,8 +38,6 @@ class GerenciadorBucket(IGerenciadorArquivo):
             self.logger.warning(f"Não foi possível ler {caminho_arquivo}: {e}")
             return None
 
-
-
     def guardar_arquivo(self, dado: Union[Dict, Set[str]], caminho_arquivo: str):
         conteudo_existente = self.abrir_arquivo(caminho_arquivo)
         if isinstance(dado, dict):

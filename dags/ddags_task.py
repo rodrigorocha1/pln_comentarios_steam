@@ -47,7 +47,7 @@ with DAG(
         for i in lista_ids:
             salvar_camada_prata = PythonOperator(
                 task_id=f"executar_processo_etl_prata_{i}",
-                python_callable=ProcessoEtl(caminho=None).executar_processo_etl_prata,
+                python_callable=ProcessoEtl(caminho=None).executar_processo_etl_prata_comentarios_tratados,
                 op_kwargs={"id_jogo": i, "data": data}
 
             )

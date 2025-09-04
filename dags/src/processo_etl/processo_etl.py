@@ -58,7 +58,7 @@ class ProcessoEtl:
         for dado in dados:
             self.__gerenciador_bk['bronze'].guardar_arquivo(dado=dado, caminho_arquivo=caminho)
 
-    def executar_processo_etl_prata(self, id_jogo: int, data: str):
+    def executar_processo_etl_prata_comentarios_tratados(self, id_jogo: int, data: str):
         caminho_bronze = f'datalake/bronze/data_{data}/jogo_{id_jogo}/reviews.jsonl'
         caminho_prata = f'datalake/prata/data_{data}/jogo_{id_jogo}/reviews.parquet'
         dados = self.__gerenciador_bk['bronze'].abrir_arquivo(caminho_arquivo=caminho_bronze)

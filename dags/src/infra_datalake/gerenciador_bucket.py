@@ -42,7 +42,6 @@ class GerenciadorBucket(IGerenciadorArquivo):
 
     def guardar_arquivo(self, dado: Union[Dict, Set[str]], caminho_arquivo: str):
         conteudo_existente = self.abrir_arquivo(caminho_arquivo)
-        print(f'conteudo_existente: {conteudo_existente}')
         if isinstance(dado, dict):
             lista_existente = []
             if conteudo_existente:

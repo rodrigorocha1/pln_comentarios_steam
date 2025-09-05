@@ -77,3 +77,12 @@ class ProcessoEtl:
         texto_completo = ' '.join(tupla_de_linhas)
         texto_tratado = self.fazer_preprocessamento(texto=texto_completo)
         self.__gerenciador_bk['prata'].guardar_arquivo(dado=texto_tratado, caminho_arquivo=caminho_prata)
+
+    def executar_processo_etl_prata_comentarios_brutos(self, id_jogo: int, data: str):
+        caminho_bronze = f'datalake/bronze/data_{data}/jogo_{id_jogo}/reviews.jsonl'
+        caminho_prata = f'datalake/prata/comentarios_brutos/jogo_{id_jogo}/reviews_bruto.parquet'
+        dados = self.__gerenciador_bk['bronze'].abrir_arquivo(caminho_arquivo=caminho_bronze)
+        lista_comentarios = []
+        if isinstance(dados, dict):
+            for dado in dados:
+                print(dado)

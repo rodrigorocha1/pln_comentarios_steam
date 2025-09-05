@@ -10,5 +10,5 @@ class IGerenciadorArquivo(ABC):
         pass
 
     @abstractmethod
-    def guardar_arquivo(self, dado: Union[Dict, Set[str]], caminho_arquivo: str):
+    def guardar_arquivo(self, dado: Union[Dict, Set[str], List[str]], caminho_arquivo: str):
         pass

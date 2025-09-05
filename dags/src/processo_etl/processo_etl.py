@@ -1,5 +1,5 @@
 import pandas as pd
-
+import string
 from ..api_steam.steam_reviews_api import SteamReviewsApi
 from ..infra_datalake.gerenciador_bucket import GerenciadorBucket
 from ..infra_datalake.conexao_banco import ConexaoBanco
@@ -9,6 +9,7 @@ import unicodedata
 import spacy
 import re
 from pandas import json_normalize
+from spacy.lang.pt.stop_words import STOP_WORDS
 
 
 class ProcessoEtl:
@@ -29,17 +30,24 @@ class ProcessoEtl:
             if not unicodedata.combining(c)
         )
 
-    def __remover_elementos(self, texto):
-        emoji_pattern = re.compile("["
-                                   u"\U0001F600-\U0001F64F"  # emoticons
-                                   u"\U0001F300-\U0001F5FF"  # símbolos e pictogramas
-                                   u"\U0001F680-\U0001F6FF"  # transporte e símbolos
-                                   u"\U0001F1E0-\U0001F1FF"  # bandeiras
-                                   u"\U00002702-\U000027B0"
-                                   u"\U000024C2-\U0001F251"
-                                   "]+", flags=re.UNICODE)
-        texto = re.sub(r'\s+', ' ', texto)
-        texto = emoji_pattern.sub(r'', texto)
+    def __remover_elementos(self, texto: str) -> str:
+
+        emoji_pattern = re.compile(
+            "["
+            "\U0001F600-\U0001F64F"  # emoticons
+            "\U0001F300-\U0001F5FF"  # símbolos e pictogramas
+            "\U0001F680-\U0001F6FF"  # transporte e símbolos
+            "\U0001F1E0-\U0001F1FF"  # bandeiras
+            "\U00002702-\U000027B0"  # símbolos diversos
+            "\U000024C2-\U0001F251"
+            "\U0001F900-\U0001F9FF"  # emojis suplementares
+            "\U0001FA70-\U0001FAFF"  # símbolos recentes
+            "]+",
+            flags=re.UNICODE
+        )
+        texto = emoji_pattern.sub(r"", texto)
+        texto = re.sub(f"[{re.escape(string.punctuation)}]", "", texto)
+        texto = re.sub(r'\s+', ' ', texto).strip().lower()
         return texto
 
     def fazer_preprocessamento(self, texto):
@@ -48,7 +56,12 @@ class ProcessoEtl:
         doc = self.__nlp(texto)
         tokens_processados = set()
         for token in doc:
-            if not token.is_stop and not token.is_punct and not token.is_digit and not token.is_space:
+            if (
+                    not token.is_stop
+                    and not token.is_punct
+                    and not token.is_digit
+                    and not token.is_space
+                    and token not in STOP_WORDS):
                 token_sem_acento = self.remover_acentos(token.lemma_.lower())
                 tokens_processados.add(token_sem_acento)
         return tokens_processados
@@ -100,5 +113,8 @@ class ProcessoEtl:
             dataframe['portugues'] = dataframe['comentario'].apply(self.is_portuguese)
             dataframe = dataframe[dataframe['portugues']]
             dataframe['comentario'] = dataframe['comentario'].apply(self.__remover_elementos)
-            comentarios = dataframe['comentario'].tolist()
+            comentarios = dataframe['comentario'].explode().tolist()
+            print('comentários')
+            print(comentarios)
+
             self.__gerenciador_bk['prata'].guardar_arquivo(dado=comentarios, caminho_arquivo=caminho_prata)

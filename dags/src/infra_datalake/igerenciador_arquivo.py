@@ -6,7 +6,7 @@ import pyarrow as pa
 class IGerenciadorArquivo(ABC):
 
     @abstractmethod
-    def abrir_arquivo(self, caminho_arquivo: str, ) -> Optional[Union[str, Dict, List, pa.Table]]:
+    def abrir_arquivo(self, caminho_arquivo: str, ) -> Optional[Union[str, Dict, List[Dict], pa.Table]]:
         pass
 
     @abstractmethod

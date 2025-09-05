@@ -1,7 +1,9 @@
+import pandas as pd
+
 from ..api_steam.steam_reviews_api import SteamReviewsApi
 from ..infra_datalake.gerenciador_bucket import GerenciadorBucket
 from ..infra_datalake.conexao_banco import ConexaoBanco
-from typing import Optional
+from typing import Optional, List, Dict
 from langdetect import detect, DetectorFactory
 import unicodedata
 import spacy
@@ -82,7 +84,15 @@ class ProcessoEtl:
         caminho_bronze = f'datalake/bronze/data_{data}/jogo_{id_jogo}/reviews.jsonl'
         caminho_prata = f'datalake/prata/comentarios_brutos/jogo_{id_jogo}/reviews_bruto.parquet'
         dados = self.__gerenciador_bk['bronze'].abrir_arquivo(caminho_arquivo=caminho_bronze)
-        lista_comentarios = []
-        if isinstance(dados, dict):
-            for dado in dados:
-                print(dado)
+        if isinstance(dados, list):
+            lista_comentarios = [
+                {
+                    'recommendationid': dado.get('recommendationid'),
+                    'comentario': dado.get('review')
+
+                } for dado in dados]
+            dataframe = pd.DataFrame(lista_comentarios, columns=['recommendationid', 'comentario'])
+            dataframe['portugues'] = dataframe['comentario'].apply(self.is_portuguese)
+            dataframe = dataframe[dataframe['portugues']]
+            comentarios = dataframe['comentario'].tolist()
+            self.__gerenciador_bk['prata'].guardar_arquivo(dado=comentarios, caminho_arquivo=caminho_prata)

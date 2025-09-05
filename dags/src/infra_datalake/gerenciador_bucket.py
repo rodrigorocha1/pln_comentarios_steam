@@ -19,7 +19,7 @@ class GerenciadorBucket(IGerenciadorArquivo):
         self.__NOME_BUCKET = Cconfig.NOME_BUCKET
         self.logger = LoggingMixin().log
 
-    def abrir_arquivo(self, caminho_arquivo: str, ) -> Optional[Union[str, Dict, List, pa.Table]]:
+    def abrir_arquivo(self, caminho_arquivo: str, ) -> Optional[Union[str, Dict, List[Dict], pa.Table]]:
         try:
             if caminho_arquivo.endswith(".parquet"):
                 s3_key = self.__s3_hook.get_key(key=caminho_arquivo, bucket_name=self.__NOME_BUCKET)
@@ -41,7 +41,7 @@ class GerenciadorBucket(IGerenciadorArquivo):
     def guardar_arquivo(self, dado: Union[Dict, Set[str], List[str]], caminho_arquivo: str):
         conteudo_existente = self.abrir_arquivo(caminho_arquivo)
         if isinstance(dado, dict):
-            lista_existente = []
+            lista_existente: List[Dict] = []
             if conteudo_existente:
                 if isinstance(conteudo_existente, list):
                     lista_existente = conteudo_existente
@@ -56,7 +56,7 @@ class GerenciadorBucket(IGerenciadorArquivo):
                 Body=novo_json.encode("utf-8")
             )
 
-        elif isinstance(dado, set):
+        elif isinstance(dado, set) or isinstance(dado, list):
             tabela_nova = pa.table({'valores': list(dado) if isinstance(dado, set) else dado})
 
             if conteudo_existente is not None:

@@ -53,10 +53,17 @@ with DAG(
             )
             lista_tasks.append(salvar_camada_prata)
 
+    with TaskGroup('task_steam_reviews_prata_comentario_tratado', dag=dag) as tg_steam_prata_comentarios_bruto:
+        lista_tasks = []
+        for i in lista_ids:
+            salvar_camada_prata_comentarios_brutos = PythonOperator(
+                task_id=f"executar_processo_etl_prata_cb_{i}",
+                python_callable=ProcessoEtl(caminho=None).executar_processo_etl_prata_comentarios_brutos,
+                op_kwargs={"id_jogo": i, "data": data}
+            )
+
     fim_dag = EmptyOperator(task_id="fim_dag", trigger_rule='all_done')
 
-    inicio_dag >> checar_url_minio >> tg_steam_bronze >> tg_steam_prata >> fim_dag
-    # inicio_dag >> checar_url_minio >> tg_steam_prata >> fim_dag
-
+    inicio_dag >> checar_url_minio >> tg_steam_bronze >> tg_steam_prata >> tg_steam_prata_comentarios_bruto >> fim_dag
 
     checar_url_minio >> dag_erro >> fim_dag

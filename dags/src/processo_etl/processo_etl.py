@@ -29,7 +29,7 @@ class ProcessoEtl:
             if not unicodedata.combining(c)
         )
 
-    def fazer_preprocessamento(self, texto):
+    def __remover_elementos(self, texto):
         emoji_pattern = re.compile("["
                                    u"\U0001F600-\U0001F64F"  # emoticons
                                    u"\U0001F300-\U0001F5FF"  # símbolos e pictogramas
@@ -39,7 +39,12 @@ class ProcessoEtl:
                                    u"\U000024C2-\U0001F251"
                                    "]+", flags=re.UNICODE)
         texto = re.sub(r'\s+', ' ', texto)
-        texto = emoji_pattern.sub(r'', texto)  # remove emojis
+        texto = emoji_pattern.sub(r'', texto)
+        return texto
+
+    def fazer_preprocessamento(self, texto):
+
+        texto = self.__remover_elementos(texto)
         doc = self.__nlp(texto)
         tokens_processados = set()
         for token in doc:
@@ -94,5 +99,6 @@ class ProcessoEtl:
             dataframe = pd.DataFrame(lista_comentarios, columns=['recommendationid', 'comentario'])
             dataframe['portugues'] = dataframe['comentario'].apply(self.is_portuguese)
             dataframe = dataframe[dataframe['portugues']]
+            dataframe['comentario'] = dataframe['comentario'].apply(self.__remover_elementos)
             comentarios = dataframe['comentario'].tolist()
             self.__gerenciador_bk['prata'].guardar_arquivo(dado=comentarios, caminho_arquivo=caminho_prata)

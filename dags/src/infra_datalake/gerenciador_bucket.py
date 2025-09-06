@@ -38,7 +38,7 @@ class GerenciadorBucket(IGerenciadorArquivo):
             self.logger.warning(f"Não foi possível ler {caminho_arquivo}: {e}")
             return None
 
-    def guardar_arquivo(self, dado: Union[Dict, Set[str], List[str]], caminho_arquivo: str):
+    def guardar_arquivo(self, dado: Union[Dict, List[str]], caminho_arquivo: str):
         conteudo_existente = self.abrir_arquivo(caminho_arquivo)
         if isinstance(dado, dict):
             lista_existente: List[Dict] = []
@@ -56,7 +56,7 @@ class GerenciadorBucket(IGerenciadorArquivo):
                 Body=novo_json.encode("utf-8")
             )
 
-        elif isinstance(dado, set) or isinstance(dado, list):
+        elif isinstance(dado, list):
             tabela_nova = pa.table({'valores': list(dado) if isinstance(dado, set) else dado})
 
             if conteudo_existente is not None:

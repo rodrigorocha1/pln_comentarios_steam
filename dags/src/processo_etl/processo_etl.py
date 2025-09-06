@@ -54,7 +54,7 @@ class ProcessoEtl:
 
         texto = self.__remover_elementos(texto)
         doc = self.__nlp(texto)
-        tokens_processados = set()
+        tokens_processados = []
         for token in doc:
             if (
                     not token.is_stop
@@ -63,7 +63,7 @@ class ProcessoEtl:
                     and not token.is_space
                     and token not in STOP_WORDS):
                 token_sem_acento = self.remover_acentos(token.lemma_.lower())
-                tokens_processados.add(token_sem_acento)
+                tokens_processados.append(token_sem_acento)
         return tokens_processados
 
     def is_portuguese(self, text):
@@ -73,7 +73,7 @@ class ProcessoEtl:
             return False
 
     def executar_processo_etl_bronze(self, id_jogo: int, data: str):
-        dados = self.__steam_api.obter_reviews_steam(codigo_jogo_steam=id_jogo, intervalo_dias=3)
+        dados = self.__steam_api.obter_reviews_steam(codigo_jogo_steam=id_jogo, intervalo_dias=120)
         caminho = f'datalake/bronze/data_{data}/jogo_{id_jogo}/reviews.jsonl'
         for dado in dados:
             self.__gerenciador_bk['bronze'].guardar_arquivo(dado=dado, caminho_arquivo=caminho)

@@ -10,7 +10,7 @@ from src.processo_etl.processo_etl import ProcessoEtl
 
 data = datetime.now().date().strftime('%Y_%m_%d')
 
-lista_ids = [244850, 275850]
+lista_ids = [244850, 275850, 359320, 392160, 1623730, 255710, 949230]
 
 with DAG(
         dag_id="dag_comentarios_steam",

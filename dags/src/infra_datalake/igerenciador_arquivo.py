@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import Dict, Optional, Union, Set, List
+from typing import Dict, Optional, Union, List
+
 import pyarrow as pa
 
 

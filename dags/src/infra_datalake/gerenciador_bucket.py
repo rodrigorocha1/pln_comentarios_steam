@@ -1,14 +1,15 @@
-import json
-from typing import Dict, Optional, Union, Set
-from airflow.providers.amazon.aws.hooks.s3 import S3Hook
-import pyarrow as pa
-from typing import List
-import pandas as pd
 import io
+import json
+from typing import Dict, Optional, Union
+from typing import List
+
+import pyarrow as pa
 import pyarrow.parquet as pq
+from airflow.providers.amazon.aws.hooks.s3 import S3Hook
+from airflow.utils.log.logging_mixin import LoggingMixin
+
 from .igerenciador_arquivo import IGerenciadorArquivo
 from ..cconfigs.cconfig import Cconfig
-from airflow.utils.log.logging_mixin import LoggingMixin
 
 
 class GerenciadorBucket(IGerenciadorArquivo):

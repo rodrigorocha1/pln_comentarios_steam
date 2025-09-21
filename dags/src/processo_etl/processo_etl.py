@@ -1,15 +1,17 @@
-import pandas as pd
-import string
-from ..api_steam.steam_reviews_api import SteamReviewsApi
-from ..infra_datalake.gerenciador_bucket import GerenciadorBucket
-from ..infra_datalake.conexao_banco import ConexaoBanco
-from typing import Optional, List, Dict
-from langdetect import detect, DetectorFactory
-import unicodedata
-import spacy
 import re
+import string
+import unicodedata
+from typing import Optional
+
+import pandas as pd
+import spacy
+from langdetect import detect, DetectorFactory
 from pandas import json_normalize
 from spacy.lang.pt.stop_words import STOP_WORDS
+
+from ..api_steam.steam_reviews_api import SteamReviewsApi
+from ..infra_datalake.conexao_banco import ConexaoBanco
+from ..infra_datalake.gerenciador_bucket import GerenciadorBucket
 
 
 class ProcessoEtl:
@@ -114,7 +116,5 @@ class ProcessoEtl:
             dataframe = dataframe[dataframe['portugues']]
             dataframe['comentario'] = dataframe['comentario'].apply(self.__remover_elementos)
             comentarios = dataframe['comentario'].explode().tolist()
-            print('comentários')
-            print(comentarios)
 
             self.__gerenciador_bk['prata'].guardar_arquivo(dado=comentarios, caminho_arquivo=caminho_prata)

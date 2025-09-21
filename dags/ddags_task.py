@@ -1,9 +1,10 @@
+from datetime import datetime
+
 from airflow import DAG
 from airflow.operators.empty import EmptyOperator
-from airflow.providers.http.operators.http import HttpOperator
 from airflow.operators.python import PythonOperator
+from airflow.providers.http.operators.http import HttpOperator
 from airflow.utils.task_group import TaskGroup
-from datetime import datetime
 
 from src.processo_etl.processo_etl import ProcessoEtl
 

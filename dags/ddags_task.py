@@ -9,17 +9,23 @@ from airflow.utils.task_group import TaskGroup
 from src.processo_etl.processo_etl import ProcessoEtl
 
 # IDs de jogos
-lista_ids = [244850, 275850, 359320, 392160, 1623730, 255710, 949230]
+lista_ids = [244850, 275850, 359320, 392160, 1623730, 255710, 949230, 1284190, 526870]
 
 
 def run_bronze(id_jogo, data):
     ProcessoEtl(caminho=None).executar_processo_etl_bronze(id_jogo=id_jogo, data=data)
 
+
 def run_prata(id_jogo, data):
     ProcessoEtl(caminho=None).executar_processo_etl_prata_comentarios_tratados(id_jogo=id_jogo, data=data)
 
+
 def run_prata_cb(id_jogo, data):
     ProcessoEtl(caminho=None).executar_processo_etl_prata_comentarios_brutos(id_jogo=id_jogo, data=data)
+
+
+def rodar_prata_dados_refinados(id_jogo, data):
+    ProcessoEtl(caminho=None).executar_processo_etl_prata_comentarios_refinados(id_jogo=id_jogo, data=data)
 
 
 with DAG(
@@ -64,7 +70,15 @@ with DAG(
                 op_kwargs={"id_jogo": i, "data": "{{ ds_nodash }}"}
             )
 
+    with TaskGroup('task_steam_reviews_prata_comentario_refinado') as tg_steam_prata_comentarios_ref:
+        for i in lista_ids:
+            PythonOperator(
+                task_id=f"executar_processo_etl_prata_cb_{i}",
+                python_callable=rodar_prata_dados_refinados,
+                op_kwargs={"id_jogo": i, "data": "{{ ds_nodash }}"}
+            )
+
     fim_dag = EmptyOperator(task_id="fim_dag", trigger_rule='all_done')
 
-    inicio_dag >> checar_url_minio >> tg_steam_bronze >> tg_steam_prata >> tg_steam_prata_comentarios_bruto >> fim_dag
+    inicio_dag >> checar_url_minio >> tg_steam_bronze >> tg_steam_prata >> tg_steam_prata_comentarios_bruto >> tg_steam_prata_comentarios_ref >> fim_dag
     checar_url_minio >> dag_erro >> fim_dag

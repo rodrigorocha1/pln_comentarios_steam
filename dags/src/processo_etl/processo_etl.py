@@ -75,7 +75,7 @@ class ProcessoEtl:
             return False
 
     def executar_processo_etl_bronze(self, id_jogo: int, data: str):
-        dados = self.__steam_api.obter_reviews_steam(codigo_jogo_steam=id_jogo, intervalo_dias=120)
+        dados = self.__steam_api.obter_reviews_steam(codigo_jogo_steam=id_jogo, intervalo_dias=365)
         caminho = f'datalake/bronze/data_{data}/jogo_{id_jogo}/reviews.jsonl'
         for dado in dados:
             self.__gerenciador_bk['bronze'].guardar_arquivo(dado=dado, caminho_arquivo=caminho)
@@ -118,3 +118,31 @@ class ProcessoEtl:
             comentarios = dataframe['comentario'].explode().tolist()
 
             self.__gerenciador_bk['prata'].guardar_arquivo(dado=comentarios, caminho_arquivo=caminho_prata)
+
+    def executar_processo_etl_prata_comentarios_refinados(self, id_jogo: int, data: str):
+        caminho_bronze = f'datalake/bronze/data_{data}/jogo_{id_jogo}/reviews.jsonl'
+        caminho_prata = f'datalake/prata/comentarios_refinados/jogo_{id_jogo}/reviews_refinados.parquet'
+        dados = self.__gerenciador_bk['bronze'].abrir_arquivo(caminho_arquivo=caminho_bronze)
+        if isinstance(dados, list):
+            lista_comentarios = [
+                {
+                    'recommendationid': dado.get('recommendationid'),
+                    'comentario': dado.get('review')
+
+                } for dado in dados]
+            dataframe = pd.DataFrame(lista_comentarios, columns=['recommendationid', 'comentario'])
+            dataframe['portugues'] = dataframe['comentario'].apply(self.is_portuguese)
+            dataframe = dataframe[dataframe['portugues']]
+            print('*' * 20)
+            print(dataframe)
+            print('*' * 20)
+            dataframe['comentario'] = dataframe['comentario'].apply(self.__remover_elementos)
+            dataframe['comentario_tratados'] = dataframe['comentario'].apply(self.__remover_elementos)
+            dataframe['comentario_tratados'] = dataframe['comentario_tratados'].apply(self.fazer_preprocessamento)
+            comentarios = dataframe['comentario_tratados'].explode().tolist()
+            print('*' * 20)
+            print(dataframe)
+            print('*' * 20)
+            dado_normalizado = [x if x == x else None for x in comentarios]
+
+            self.__gerenciador_bk['prata'].guardar_arquivo(dado=dado_normalizado, caminho_arquivo=caminho_prata)

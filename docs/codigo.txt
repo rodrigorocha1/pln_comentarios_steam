@@ -1,48 +1,9 @@
-from datetime import datetime
-from airflow import DAG
-from airflow.operators.empty import EmptyOperator
-from airflow.decorators import task
-from src.infra_datalake.gerenciador_bucket import GerenciadorBucket
-
-# Configuração da DAG
-with DAG(
-    dag_id="dag_guardar_arquivo_s3",
-    description="Exemplo de DAG que guarda um JSON em S3/MinIO usando GerenciadorBucket",
-    start_date=datetime(2025, 1, 1),
-
-    catchup=False,
-    tags={"exemplo", "s3", "minio"},
-) as dag:
-
-    inicio = EmptyOperator(task_id="inicio")
-    fim = EmptyOperator(task_id="fim")
-
-    @task
-    def guardar_dados():
-        # Inicializa o gerenciador da camada 'bronze'
-        gb = GerenciadorBucket(camada='bronze')
-        # Exemplo de dados
-        dados = {'a': 1, 'b': 2}
-        # Caminho dentro do bucket
-        caminho = 'datalake/bronze/exemplo.json'
-        # Salva no S3
-        gb.guardar_arquivo(dado=dados, caminho_arquivo=caminho)
-        return f"Arquivo salvo em {caminho}"
-
-    salvar = guardar_dados()
-
-    inicio >> salvar >> fim
-
-
-
-from airflow.providers.http.operators.http import HttpOperator
-
-    checar_url_minio = HttpOperator(
-        task_id='minio_http',
-        method='GET',
-        http_conn_id='minio_http',  # CORRETO
-        endpoint='minio/healtah/ready',
-        response_check=lambda response: response.status_code == 200,
-        log_response=True,
-
-    )
+244850-Space Engineers
+275850-No Man's Sky
+359320-Elite Dangerous
+392160-X4: Foundations
+1623730-Palworld
+255710-Cities: Skylines
+949230-Cities: Skylines 2
+1284190-The Planet Crafter
+526870-Satisfactory

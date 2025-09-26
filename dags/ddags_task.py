@@ -45,40 +45,41 @@ with DAG(
     )
 
     dag_erro = EmptyOperator(task_id='dag_erro', trigger_rule='one_failed')
-
-    with TaskGroup('task_steam_reviews_bronze') as tg_steam_bronze:
-        for i in lista_ids:
-            PythonOperator(
-                task_id=f"executar_processo_etl_bronze_{i}",
-                python_callable=run_bronze,
-                op_kwargs={"id_jogo": i, "data": "{{ ds_nodash }}"}
-            )
-
-    with TaskGroup('task_steam_reviews_prata') as tg_steam_prata:
-        for i in lista_ids:
-            PythonOperator(
-                task_id=f"executar_processo_etl_prata_{i}",
-                python_callable=run_prata,
-                op_kwargs={"id_jogo": i, "data": "{{ ds_nodash }}"}
-            )
-
-    with TaskGroup('task_steam_reviews_prata_comentario_tratado') as tg_steam_prata_comentarios_bruto:
-        for i in lista_ids:
-            PythonOperator(
-                task_id=f"executar_processo_etl_prata_cb_{i}",
-                python_callable=run_prata_cb,
-                op_kwargs={"id_jogo": i, "data": "{{ ds_nodash }}"}
-            )
-
-    with TaskGroup('task_steam_reviews_prata_comentario_refinado') as tg_steam_prata_comentarios_ref:
-        for i in lista_ids:
-            PythonOperator(
-                task_id=f"executar_processo_etl_prata_cb_{i}",
-                python_callable=rodar_prata_dados_refinados,
-                op_kwargs={"id_jogo": i, "data": "{{ ds_nodash }}"}
-            )
+    #
+    # with TaskGroup('task_steam_reviews_bronze') as tg_steam_bronze:
+    #     for i in lista_ids:
+    #         PythonOperator(
+    #             task_id=f"executar_processo_etl_bronze_{i}",
+    #             python_callable=run_bronze,
+    #             op_kwargs={"id_jogo": i, "data": "{{ ds_nodash }}"}
+    #         )
+    #
+    # with TaskGroup('task_steam_reviews_prata') as tg_steam_prata:
+    #     for i in lista_ids:
+    #         PythonOperator(
+    #             task_id=f"executar_processo_etl_prata_{i}",
+    #             python_callable=run_prata,
+    #             op_kwargs={"id_jogo": i, "data": "{{ ds_nodash }}"}
+    #         )
+    #
+    # with TaskGroup('task_steam_reviews_prata_comentario_tratado') as tg_steam_prata_comentarios_bruto:
+    #     for i in lista_ids:
+    #         PythonOperator(
+    #             task_id=f"executar_processo_etl_prata_cb_{i}",
+    #             python_callable=run_prata_cb,
+    #             op_kwargs={"id_jogo": i, "data": "{{ ds_nodash }}"}
+    #         )
+    #
+    # with TaskGroup('task_steam_reviews_prata_comentario_refinado') as tg_steam_prata_comentarios_ref:
+    #     for i in lista_ids:
+    #         PythonOperator(
+    #             task_id=f"executar_processo_etl_prata_cb_{i}",
+    #             python_callable=rodar_prata_dados_refinados,
+    #             op_kwargs={"id_jogo": i, "data": "{{ ds_nodash }}"}
+    #         )
 
     fim_dag = EmptyOperator(task_id="fim_dag", trigger_rule='all_done')
 
-    inicio_dag >> checar_url_minio >> tg_steam_bronze >> tg_steam_prata >> tg_steam_prata_comentarios_bruto >> tg_steam_prata_comentarios_ref >> fim_dag
+    # inicio_dag >> checar_url_minio >> tg_steam_bronze >> tg_steam_prata >> tg_steam_prata_comentarios_bruto >> tg_steam_prata_comentarios_ref >> fim_dag
+    inicio_dag >> checar_url_minio >> fim_dag
     checar_url_minio >> dag_erro >> fim_dag

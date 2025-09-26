@@ -1,32 +1,23 @@
 import duckdb
 from nltk.util import ngrams
 from collections import Counter
-from langdetect import detect, DetectorFactory
-from spacy import displacy
+
 import spacy
-import unicodedata
-import re
-import pathlib
-from nltk import FreqDist
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.cluster import KMeans
-import pandas as pd
+
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
-import matplotlib
 
 # Fonte padrão do matplotlib (TrueType)
 
-id_jogo = '244850'
+id_jogo = '392160'
 #  read_json_auto
 AWS_ACCESS_KEY_ID = "meuusuario"
 AWS_SECRET_ACCESS_KEY = "minhasenha123"
 AWS_ENDPOINT_URL = "172.40.0.21:9000"  # host:porta
 BUCKET_NAME = "meu-bucket"
 ARQUIVO_PATH = f"datalake/prata/data_*/jogo_{id_jogo}/reviews.parquet"
-#ARQUIVO_PATH_COMENTARIOS_BRUTOS = f"datalake/prata/comentarios_brutos/jogo_{id_jogo}/reviews_bruto.parquet"
+# ARQUIVO_PATH_COMENTARIOS_BRUTOS = f"datalake/prata/comentarios_brutos/jogo_{id_jogo}/reviews_bruto.parquet"
 ARQUIVO_PATH_COMENTARIOS_BRUTOS = f"datalake/prata/comentarios_refinados/jogo_{id_jogo}/reviews_refinados.parquet"
-
 
 con = duckdb.connect('dados_reviews/reviews.duckdb')
 con.execute(f"SET s3_access_key_id='{AWS_ACCESS_KEY_ID}';")
@@ -43,12 +34,13 @@ df_brutos = con.execute(f"""
     SELECT * FROM read_parquet('s3://{BUCKET_NAME}/{ARQUIVO_PATH_COMENTARIOS_BRUTOS}')
 """).df()
 lista = df['valores'].tolist()
-lista.sort()
+# lista.sort()
 print(lista)
 
 nlp = spacy.load("pt_core_news_sm")
 docs = list(nlp.pipe(lista))
 texto = ' '.join(lista)
+print(type(docs))
 print(texto)
 # 1- wordcloud
 print('1- wordcloud')
@@ -62,6 +54,7 @@ plt.figure(figsize=(12, 6))
 plt.imshow(img)
 plt.axis("off")
 plt.title("WordCloud de Vários Termos")
+plt.savefig('fig.png')
 plt.show()
 
 #  3- Criar Bag of Words (frequência de palavras)
@@ -69,7 +62,7 @@ print('3- Criar Bag of Words (frequência de palavras)')
 bow = Counter(lista)
 print("Bag of Words:", bow)
 
-#4 - Número total de tokens e diversidade lexica
+# 4 - Número total de tokens e diversidade lexica
 print('4 - Número total de tokens e diversidade lexica')
 numero_tokens = len(docs)
 total_tokens_unicos = len(set([t.text for t in docs]))
@@ -102,6 +95,7 @@ print('6-Mostrando palavras-chave de cada cluster')
 from sklearn.cluster import KMeans
 from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
+
 vectorizer = TfidfVectorizer()
 X = vectorizer.fit_transform(df['valores'])
 
@@ -119,3 +113,12 @@ for i in range(num_clusters):
     top_terms = [terms[j] for j in mean_tfidf.argsort()[-5:][::-1]]
     print(f"Cluster {i}: {top_terms}")
 
+print('7-Ngrans')
+bigramas = list(ngrams(lista, 2))
+
+# Contar frequência
+contagem_bigramas = Counter(bigramas)
+
+# Mostrar os 20 bigramas mais comuns
+for bigrama, freq in contagem_bigramas.most_common(20):
+    print(f"{bigrama}: {freq}")

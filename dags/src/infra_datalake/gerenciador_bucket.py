@@ -3,10 +3,12 @@ import json
 from typing import Dict, Optional, Union
 from typing import List
 
+import matplotlib.pyplot as plt
 import pyarrow as pa
 import pyarrow.parquet as pq
 from airflow.providers.amazon.aws.hooks.s3 import S3Hook
 from airflow.utils.log.logging_mixin import LoggingMixin
+from wordcloud import WordCloud
 
 from .igerenciador_arquivo import IGerenciadorArquivo
 from ..cconfigs.cconfig import Cconfig
@@ -82,3 +84,22 @@ class GerenciadorBucket(IGerenciadorArquivo):
                 Key=caminho_arquivo,
                 Body=buffer.read()
             )
+
+    def salvar_wordcloud(self, texto: str, caminho_arquivo: str):
+        wc = WordCloud(width=800, height=400, background_color='white').generate(texto)
+        plt.figure(figsize=(10, 5))
+        plt.imshow(wc)
+        plt.axis('off')
+        plt.title('Wordclud')
+
+        buffer = io.BytesIO()
+        plt.savefig(buffer, format='png')
+        buffer.seek(0)
+        plt.close(fig)
+
+        self.__s3_hook.get_conn().put_object(
+            Bucket=self.__NOME_BUCKET,
+            Key=caminho_arquivo,
+            Body=buffer.read(),
+            ContentType="image/png"
+        )
